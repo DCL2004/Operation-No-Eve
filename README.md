@@ -28,12 +28,12 @@ By Daniel Lin and Irene Xu
   - unsecure I2C
   - This video shows message transmission between Alice and Bob without encryption. The several short messages we want to send are "ECE3140", "HELLO", “PHASE 1", and "I2C WORKS". On the left side, it's supposed to show the messages Bob received, so that we can verify that the system between Alice and Bob is working correctly. On the right side, it shows the messages Eve copies down from the shared communication of the I2C circuit. By observing each character on the right side, we can see that Eve can successfully intercept the messages and understand them, just like Bob.
 
-https://github.com/DCL2004/Operation-No-Eve/blob/main/demo/video_unsecure_I2C.mp4
+<video src="https://github.com/DCL2004/Operation-No-Eve/raw/main/demo/video_unsecure_I2C.mp4" controls></video>
 
   - secure I2C
   - This video shows the same message transmission process, but with encryption and decryption added. With the given encryption key, "ECE3140" is encoded to "BCB3140", "HELLO" is "LBOOY", and "PHASE 1" is "HLZRB 1". On the left side, it still shows the encoded message that Bob receives and the original message that Bob recovers using the decryption key. This shows that the encryption method is working correctly and the data transmission between Alice and Bob is also working. On the right side, it shows the messages Eve intercepts. However, Eve can only intercepts the encoded messages such as "LBOOY" and "HLZRB 1". Since Eve was not given the keys, Eve wouldn't understand the meaning of by intercepting the messages from the shared communication I2C circuit, which achieves our goal.
     
-https://github.com/DCL2004/Operation-No-Eve/blob/main/demo/video_secure_I2C.mp4
+<video src="https://github.com/DCL2004/Operation-No-Eve/raw/main/demo/video_secure_I2C.mp4" controls></video>
 
 
 ## System Description
