@@ -39,24 +39,24 @@ https://github.com/DCL2004/Operation-No-Eve/blob/main/demo/video_secure_I2C.mp4
 ## System Description
 - Board A: master (Alice), sends messages
   - Alice acts as the I2C master of the system. It generates, encrypts, and sends { 0xAB, counter } to slave 0x48 every ~100 ms. It uses D14 for SDA and D15 for SCL, and its GPIO pins are initialized as below:
-  - <img width="388" alt="image" src="https://github.coecis.cornell.edu/user-attachments/assets/a6733788-7a93-4466-8419-9849f3bf27d3" />
+  - <img width="388" alt="image" src="https://github.com/DCL2004/Operation-No-Eve/blob/main/demo/a6733788-7a93-4466-8419-9849f3bf27d3.png" />
   - In send_text(const char *msg, uint8_t len), it waits for the bus to become available and then set the MST and TX bits in I2C using:
-  - <img width="292" alt="image" src="https://github.coecis.cornell.edu/user-attachments/assets/27b79ae4-f4ff-4aca-83e7-fa5a66ba0ed3" />
+  - <img width="292" alt="image" src="https://github.com/DCL2004/Operation-No-Eve/blob/main/demo/27b79ae4-f4ff-4aca-83e7-fa5a66ba0ed3.png" />
   - Then it sends the message one bit at a time to Bob's address. The MSG_MARKER allows Bob to distinguish the sent bit from the rest. During this process, Alice checks for TCF (transfer complete flag) and RXAK after sending each bit, if either is triggered, the process would terminate immediatley. As shown in the screenshot, in the while loop, it decrements t and stays inside when transfer is not complete and t is not zero. The following is the code for i2c_wait_tcf_ack.
-  - <img width="224" alt="image" src="https://github.coecis.cornell.edu/user-attachments/assets/e54c5a84-aa51-45d6-8fbf-b41d39adbbc6" />
+  - <img width="224" alt="image" src="https://github.com/DCL2004/Operation-No-Eve/blob/main/demo/e54c5a84-aa51-45d6-8fbf-b41d39adbbc6.png" />
 
 - Board B: slave (Bob), receives messages
   - Bob acts as the slave of the system. It receives and decrypts the bit messages got from Alice, and display the results through UART serial output. It uses D14 for SDA and D15 for SCL as well. The I2C function is initialized as below:
-  - <img width="358" alt="image" src="https://github.coecis.cornell.edu/user-attachments/assets/90ce7784-5206-465a-942a-cf1f47ff31db" />
+  - <img width="358" alt="image" src="https://github.com/DCL2004/Operation-No-Eve/blob/main/demo/90ce7784-5206-465a-942a-cf1f47ff31db.png" />
   - Since it needs to display the results, Bob also needs to initialize UART ports. The UART ports need to configure transmite and receive pins and enable serail communication. For UART transmission, we use uart_putc, which waits until the transmission data register is empty and then opens up for receiving the next character.
   - To analyze the received data, it first waits until the master addresses the slave by its address 0x48u. Then it let the slave enter receive mode and clear the internal state before receiving data. As long as the I2C tranmission is active, Bob would continue receiving data in a while loop. Inside the while loop, Bob waits until there's a next character, the I2C transmission ends, or reaches timeout limit. After the while loop, Bob reads the received character and stores it inside an array. The full process when I2C is active is shown as below:
-  - <img width="314" alt="image" src="https://github.coecis.cornell.edu/user-attachments/assets/f620a6ed-e886-416e-b623-05b19bc65482" />
+  - <img width="314" alt="image" src="https://github.com/DCL2004/Operation-No-Eve/blob/main/demo/f620a6ed-e886-416e-b623-05b19bc65482.png" />
   - After decrypting the data, Bob uses display_packet(const uint8_t *buf, uint8_t n) to display the message marker and bit pair for each character. It would display both the received encoded message and the decrypted original one in the form of strings.
 
 - Board C: eavesdropper (Eve), captures messages without participating in the data transmission process
   - Eve is the eavesdropper in this system. Unlike Alice and Bob, Eve doesn't participate in the I2C communication. It configures PTE0 and PTE1 as GPIO inputs, tracking the I2C traffics through SDA and SCL and printing them over UART0. Eve and Bob both receive the message, so most parts of their functions are the same. However, the main difference is that since Eve doesn't actively participate in the process, it waits for the SCL rising edge which indicates a new bit is received. When SCL is on rising edge, SDA changes from low to high for start and from high to low for stop.
   - Using the start and stop condition, Eve converts the bits into readable characters. For all received message stored in frame_buf, it prints the data and the bytes in hexidecimal. If the message is the first bit, Eve would use uart_puts("ADDR=0x"); uart_hex8(val >> 1u); uart_putc((val & 1u) ? 'R' : 'W'); to print the slave address and Read/Write bit. The full code snippet is shown as below:
-  - <img width="224" alt="image" src="https://github.coecis.cornell.edu/user-attachments/assets/38a805f9-7ee2-434d-9091-6291f468d4e3" />
+  - <img width="224" alt="image" src="https://github.com/DCL2004/Operation-No-Eve/blob/main/demo/38a805f9-7ee2-434d-9091-6291f468d4e3.png" />
 
 - I2C circuit:
   - The three FRDM-KL46Z boards are connected on a breadboard using shared common I2C circuit. The 3 board arrangements are shown in the picture of Phase 2 in System Overview section. All boards share the common SDA for data and SCL for clock, and can observe the activities on these two pins, which allows Eve to observe the message without participating in the data transmission process. We used 2 external resistors of 6.8kohm, connected to SDA and SCL, to pull the circuit up to satisfy the I2C circuit's active low logic. These resistors allow the 3 devices to share the same circuit safely, preventing constantly changing data and making stable communications across all devices.
